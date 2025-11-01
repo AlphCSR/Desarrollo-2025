@@ -10,13 +10,10 @@ namespace UsersMS.Application.Handlers.Commands
     {
         private readonly IUserRepository _userRepository;
         private readonly IKeycloakService _keycloakService;
-        private readonly IEventPublisher _eventPublisher;
-
-        public UpdateUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService, IEventPublisher eventPublisher)
+        public UpdateUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService)
         {
             _userRepository = userRepository;
             _keycloakService = keycloakService;
-            _eventPublisher = eventPublisher;
         }
 
         public async Task<string> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
@@ -47,7 +44,6 @@ namespace UsersMS.Application.Handlers.Commands
 
             await _keycloakService.UpdateUserAsync(user.Email!, updatePayload, token);
             await _userRepository.UpdateAsync(user);
-            await _eventPublisher.PublishUserUpdatedAsync(user);
             return "User updated successfully.";
         }
     }

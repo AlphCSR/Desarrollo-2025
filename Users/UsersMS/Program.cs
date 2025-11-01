@@ -40,7 +40,6 @@ builder.Services.AddMediatR(typeof(CreateUserCommandHandler).Assembly);
 builder.Services.AddMediatR(typeof(UpdateUserCommandHandler).Assembly);
 builder.Services.AddMediatR(typeof(DeleteUserCommandHandler).Assembly);
 
-builder.Services.AddScoped<IEventPublisher, EventPublisher>();
 builder.Services.AddTransient<IUsersDbContext, UsersDbContext>();
 builder.Services.AddScoped<IKeycloakService, KeycloakService>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
@@ -48,46 +47,10 @@ builder.Services.AddTransient<IUsersDbContext, UsersDbContext>();
 
 System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
 
-builder.Services.AddSingleton<MongoDbContext>();
-builder.Services.AddSingleton(provider =>
-{
-    var context = provider.GetRequiredService<MongoDbContext>();
-    return context.Users;
-});
 
 var dbConnectionString = builder.Configuration.GetValue<string>("DefaultConnection");
 builder.Services.AddDbContext<UsersDbContext>(options =>
-options.UseSqlServer(dbConnectionString));
-builder.Services.AddSingleton<MongoDbContext>();
-
-builder.Services.AddMassTransit(x =>
-{
-    x.AddConsumer<UserCreatedConsumer>();
-    x.AddConsumer<UserUpdatedConsumer>();
-    x.AddConsumer<UserDeletedConsumer>();
-
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host("localhost", "/", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-
-        cfg.ReceiveEndpoint("user-created-queue", e =>
-        {
-            e.ConfigureConsumer<UserCreatedConsumer>(context);
-        });
-        cfg.ReceiveEndpoint("user-updated-queue", e =>
-        {
-            e.ConfigureConsumer<UserUpdatedConsumer>(context);
-        });
-        cfg.ReceiveEndpoint("user-deleted-queue", e =>
-        {
-            e.ConfigureConsumer<UserDeletedConsumer>(context);
-        });
-    });
-});
+options.UseNpgsql(dbConnectionString));
 
 
 builder.Services.AddEndpointsApiExplorer();

@@ -1,35 +1,20 @@
 version: '3.9'
 
 services:
-  usersms-main:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - sqlserver-usersms
-      - rabbitmq-usersms  
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=UsersDB;User=sa;Password=Your_password123;TrustServerCertificate=True
-      - RabbitMq__Host=rabbitmq
-    ports:
-      - "8080:80"
-    networks:
-      - backend
+  postgres-users: 
+      image: postgres:latest
+      environment:
+        - POSTGRES_DB=UsersDB
+        - POSTGRES_USER=sa
+        - POSTGRES_PASSWORD=Your_password123
+      ports:
+        - "5432:5432"
+      networks:
+        - backend
+      volumes:
+        - pg_data:/var/lib/postgresql/data
 
-  sqlserver-usersms:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=Your_password123
-    ports:
-      - "1433:1433"
-    networks:
-      - backend
-    volumes:
-      - sql_data:/var/opt/mssql
-
-  rabbitmq-usersms:
+  rabbitmq-users:
     image: rabbitmq:3-management
     ports:
       - "5672:5672"

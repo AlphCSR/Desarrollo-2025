@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UsersMS.Core.DataBase;
 using UsersMS.Domain.Entities;
-using EntityFramework.Exceptions.SqlServer;
+using EntityFramework.Exceptions.Npgsql;
 
 namespace UsersMS.Infrastructure.DataBase
 {
@@ -23,12 +23,6 @@ namespace UsersMS.Infrastructure.DataBase
         }
 
         public virtual DbSet<User> Users { get; set; } = null!;
-
-        //public virtual DbSet<Administrator> Administrators { get; set; } = null!;
-       // public virtual DbSet<TechnicalSupport> TechnicalSupports { get; set; } = null!;
-        //public virtual DbSet<Bidder> Bidders { get; set; } = null!;
-       // public virtual DbSet<Auctioneer> Auctioneers { get; set; } = null!;
-
 
         public IDbContextTransactionProxy BeginTransaction()
         {

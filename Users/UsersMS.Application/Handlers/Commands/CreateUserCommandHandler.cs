@@ -14,13 +14,10 @@ namespace UsersMS.Application.Handlers.Commands
     {
         private readonly IUserRepository _userRepository;
         private readonly IKeycloakService _keycloakService;
-        private readonly IEventPublisher _eventPublisher;
-
-        public CreateUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService,IEventPublisher eventPublisher)
+        public CreateUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService)
         {
             _userRepository = userRepository;
             _keycloakService = keycloakService;
-            _eventPublisher = eventPublisher;
         }
 
         public async Task<string> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -58,8 +55,6 @@ namespace UsersMS.Application.Handlers.Commands
 
             await _keycloakService.CreateUserAsync(keycloakUser, token);
             await _keycloakService.AssignRoleAsync(user.Email!, user.Role.ToString(), token);
-            await _eventPublisher.PublishUserCreatedAsync(user);
-
 
             return "User successfully created.";
         }
