@@ -14,17 +14,6 @@ services:
       volumes:
         - pg_data:/var/lib/postgresql/data
 
-  rabbitmq-users:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    networks:
-      - backend
-    environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-
 networks:
   backend:
     driver: bridge
