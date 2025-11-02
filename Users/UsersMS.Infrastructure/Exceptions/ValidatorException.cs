@@ -9,23 +9,11 @@ namespace UsersMS.Infrastructure.Exceptions
 {
     public class ValidatorException : Exception
     {
-        //para poder pasarle una coleccion de objetos que devuelve validateAsync, se tuvo que crear este constructor que recibe
-        //una lista de ese tipo de objetos 
+        public List<ValidationFailure> Errors { get; }
         public ValidatorException(List<ValidationFailure> errors)
+            : base("La validación del objeto ha fallado.")
         {
+            Errors = errors;
         }
-
-        public ValidatorException(string message)
-            : base(message)
-        {
-        }
-
-        public ValidatorException(string message, Exception inner)
-        : base(message, inner)
-        {
-        }
-
-        //public ValidatorException(IEnumerable<ValidationFailure> errors) : base("Validation failed") { }
-
     }
 }

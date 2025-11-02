@@ -14,6 +14,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL;
 using System.Configuration;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
+using FluentValidation;
 
 
 
@@ -37,14 +38,14 @@ builder.Services.AddControllers()
 
 builder.Services.AddHttpClient();
 
+// This single line registers all handlers in the assembly.
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateUserCommandHandler).Assembly));
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UpdateUserCommandHandler).Assembly));
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DeleteUserCommandHandler).Assembly));
+// This single line registers all validators in the assembly.
+builder.Services.AddValidatorsFromAssembly(typeof(CreateUserCommandHandler).Assembly);
 
 builder.Services.AddTransient<IUsersDbContext, UsersDbContext>();
 builder.Services.AddScoped<IKeycloakService, KeycloakService>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
-builder.Services.AddTransient<IUsersDbContext, UsersDbContext>();
 
 System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
 
@@ -89,9 +90,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
-

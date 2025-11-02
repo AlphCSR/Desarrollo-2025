@@ -24,7 +24,6 @@ namespace UsersMS.Infrastructure.Repositories
         public async Task AddAsync(User user)
         {
             await _dbContext.Users.AddAsync(user);
-            await _dbContext.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Guid userId)
@@ -35,13 +34,11 @@ namespace UsersMS.Infrastructure.Repositories
                 throw new Exception("User not found.");
             }
             _dbContext.Users.Remove(userEntity);
-            await _dbContext.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(User user)
         {
             _dbContext.Users.Update(user);
-            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<User?> GetByIdAsync(Guid userId)

@@ -1,11 +1,14 @@
-﻿using MediatR;
+﻿using FluentValidation;
+using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using UsersMS.Application.Commands;
+using UsersMS.Core.DataBase;
 using UsersMS.Core.Repositories;
 using UsersMS.Core.Service;
 using UsersMS.Domain.Entities;
+using UsersMS.Infrastructure.Exceptions;
 
 namespace UsersMS.Application.Handlers.Commands
 {
@@ -13,14 +16,22 @@ namespace UsersMS.Application.Handlers.Commands
     {
         private readonly IUserRepository _userRepository;
         private readonly IKeycloakService _keycloakService;
-        public CreateUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService)
+        private readonly IUsersDbContext _context;
+        private readonly IValidator<CreateUserCommand> _validator;
+        public CreateUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService, IUsersDbContext context, IValidator<CreateUserCommand> validator)
         {
             _userRepository = userRepository;
             _keycloakService = keycloakService;
+            _context = context;
+            _validator = validator;
         }
 
         public async Task<string> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+                throw new ValidatorException(validationResult.Errors);
+
             var dto = request.CreateUserDto;
 
             var user = new User(
@@ -54,6 +65,8 @@ namespace UsersMS.Application.Handlers.Commands
 
             await _keycloakService.CreateUserAsync(keycloakUser, token);
             await _keycloakService.AssignRoleAsync(user.Email!, user.Role.ToString(), token);
+
+            await _context.DbContext.SaveChangesAsync(cancellationToken);
 
             return "User successfully created.";
         }

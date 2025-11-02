@@ -4,6 +4,7 @@ using UsersMS.Commons.Dtos.Request;
 using UsersMS.Application.Commands;
 using UsersMS.Application.Queries;
 using Microsoft.AspNetCore.Authorization;
+using UsersMS.Infrastructure.Exceptions;
 
 namespace UsersMS.Controllers
 {
@@ -78,6 +79,11 @@ namespace UsersMS.Controllers
                 var command = new UpdateUserCommand(updateUserDto);
                 var msg = await _mediator.Send(command);
                 return Ok(msg);
+            }
+            catch (UserNotFoundException e)
+            {
+                _logger.LogWarning("Attempted to update a user that was not found: {Message}", e.Message);
+                return NotFound(e.Message);
             }
             catch (Exception e)
             {

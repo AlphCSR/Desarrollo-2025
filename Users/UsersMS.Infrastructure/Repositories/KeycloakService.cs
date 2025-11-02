@@ -88,6 +88,8 @@ namespace UsersMS.Infrastructure.Repositories
 
         public async Task DisableUserAsync(string username, string token)
         {
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             // Buscar el usuario por username
             var userResponse = await _httpClient.GetAsync($"admin/realms/{_realm}/users?username={username}");
             if (!userResponse.IsSuccessStatusCode)
