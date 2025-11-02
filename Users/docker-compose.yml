@@ -1,23 +1,30 @@
-version: '3.9'
-
+version: "3.8"
 services:
-  postgres-users: 
-      image: postgres:latest
-      environment:
-        - POSTGRES_DB=UsersDB
-        - POSTGRES_USER=sa
-        - POSTGRES_PASSWORD=Your_password123
-      ports:
-        - "5432:5432"
-      networks:
-        - backend
-      volumes:
-        - pg_data:/var/lib/postgresql/data
+  postgres-users:
+    image: postgres:15
+    container_name: postgres-users
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "UsersDB"
+      POSTGRES_USER: "sa"
+      POSTGRES_PASSWORD: "Your_password123"
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sa -d UsersDB -h localhost || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   backend:
     driver: bridge
 
 volumes:
-  sql_data:
+  pg_data:
     driver: local

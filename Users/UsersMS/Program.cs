@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using UsersMS.Application.Handlers.Commands;
 using UsersMS.Application.Handlers.Queries;
@@ -11,10 +10,12 @@ using UsersMS.Core.Service;
 using UsersMS.Infrastructure.DataBase;
 using UsersMS.Infrastructure.Repositories;
 using UsersMS.Infrastructure.Setings;
+using Npgsql.EntityFrameworkCore.PostgreSQL; 
 using System.Configuration;
 using MassTransit;
-using UsersMS.Infrastructure.Messaging.Consumers;
-using UsersMS.Infrastructure.Service;
+using Microsoft.Extensions.DependencyInjection;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,9 +37,9 @@ builder.Services.AddControllers()
 
 builder.Services.AddHttpClient();
 
-builder.Services.AddMediatR(typeof(CreateUserCommandHandler).Assembly);
-builder.Services.AddMediatR(typeof(UpdateUserCommandHandler).Assembly);
-builder.Services.AddMediatR(typeof(DeleteUserCommandHandler).Assembly);
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateUserCommandHandler).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UpdateUserCommandHandler).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DeleteUserCommandHandler).Assembly));
 
 builder.Services.AddTransient<IUsersDbContext, UsersDbContext>();
 builder.Services.AddScoped<IKeycloakService, KeycloakService>();
@@ -47,11 +48,9 @@ builder.Services.AddTransient<IUsersDbContext, UsersDbContext>();
 
 System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
 
-
 var dbConnectionString = builder.Configuration.GetValue<string>("DefaultConnection");
 builder.Services.AddDbContext<UsersDbContext>(options =>
-options.UseNpgsql(dbConnectionString));
-
+    options.UseNpgsql(dbConnectionString));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -80,56 +79,6 @@ builder.Services.AddSwaggerGen(options =>
             new string[] {}
         }
     });
-});
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.Authority = "http://localhost:8080/realms/Users-Ms";
-    options.Audience = "publi-client";
-    options.RequireHttpsMetadata = false;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidIssuer = "http://localhost:8080/realms/Users-Ms",
-        ValidateAudience = true,
-        ValidAudience = "publi-client",
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-    options.Events = new JwtBearerEvents
-    {
-        OnTokenValidated = context =>
-        {
-            var claimsIdentity = context.Principal.Identity as ClaimsIdentity;
-            if (claimsIdentity != null)
-            {
-                var resourceAccess = context.Principal.FindFirst("resource_access")?.Value;
-                if (!string.IsNullOrEmpty(resourceAccess))
-                {
-                    var resourceAccessJson = System.Text.Json.JsonDocument.Parse(resourceAccess);
-                    if (resourceAccessJson.RootElement.TryGetProperty("publi-client", out var publiClientElement) &&
-                        publiClientElement.TryGetProperty("roles", out var rolesElement))
-                    {
-                        foreach (var role in rolesElement.EnumerateArray())
-                        {
-                            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role.GetString()));
-                        }
-                    }
-                }
-            }
-            return Task.CompletedTask;
-        },
-        OnAuthenticationFailed = context =>
-        {
-            Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-            return Task.CompletedTask;
-        }
-    };
 });
 
 var app = builder.Build();

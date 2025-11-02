@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FluentValidation.Results;
 
 namespace UsersMS.Infrastructure.Exceptions
 {
@@ -10,7 +11,7 @@ namespace UsersMS.Infrastructure.Exceptions
     {
         //para poder pasarle una coleccion de objetos que devuelve validateAsync, se tuvo que crear este constructor que recibe
         //una lista de ese tipo de objetos 
-        public ValidatorException(List<FluentValidation.Results.ValidationFailure> errors)
+        public ValidatorException(List<ValidationFailure> errors)
         {
         }
 

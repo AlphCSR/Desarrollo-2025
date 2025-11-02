@@ -1,5 +1,4 @@
-﻿using Azure;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +12,6 @@ namespace UsersMS.Core.DataBase
         DbContext DbContext { get; }
 
         DbSet<User> Users { get; set; }
-       // DbSet<Bidder> Bidders { get; set; }
-       // DbSet<TechnicalSupport> TechnicalSupports { get; set; }
-       // DbSet<Auctioneer> Auctioneers { get; set; }
 
         IDbContextTransactionProxy BeginTransaction();
 

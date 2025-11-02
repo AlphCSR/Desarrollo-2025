@@ -6,7 +6,6 @@ using UsersMS.Application.Commands;
 using UsersMS.Core.Repositories;
 using UsersMS.Core.Service;
 using UsersMS.Domain.Entities;
-using UsersMS.Infrastructure.Service;
 
 namespace UsersMS.Application.Handlers.Commands
 {

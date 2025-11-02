@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 namespace UsersMS.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "User,Administrador")] // Ajusta los roles según lo que tengas en Keycloak
     [Route("users")]
     public class UsersController : ControllerBase
     {

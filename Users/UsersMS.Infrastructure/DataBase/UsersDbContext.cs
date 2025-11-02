@@ -1,15 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UsersMS.Core.DataBase;
 using UsersMS.Domain.Entities;
-using EntityFramework.Exceptions.Npgsql;
+
 
 namespace UsersMS.Infrastructure.DataBase
 {
@@ -36,7 +31,7 @@ namespace UsersMS.Infrastructure.DataBase
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseExceptionProcessor();
+            optionsBuilder.IsConfigured.ToString();
         }
 
         public virtual void SetPropertyIsModifiedToFalse<TEntity, TProperty>(
