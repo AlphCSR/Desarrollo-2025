@@ -6,14 +6,18 @@ using UsersMS.Application.Handlers.Commands;
 using UsersMS.Application.Handlers.Queries;
 using UsersMS.Core.DataBase;
 using UsersMS.Core.Repositories;
+using UsersMS.Domain.Entities;
 using UsersMS.Core.Service;
 using UsersMS.Infrastructure.DataBase;
 using UsersMS.Infrastructure.Repositories;
+using UsersMS.Infrastructure.Messaging;
 using UsersMS.Infrastructure.Setings;
 using Npgsql.EntityFrameworkCore.PostgreSQL; 
 using System.Configuration;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
+using UsersMS.Infrastructure.Messaging.Consumers;
+using UsersMS.Infrastructure.Service;
 using FluentValidation;
 
 
@@ -38,14 +42,13 @@ builder.Services.AddControllers()
 
 builder.Services.AddHttpClient();
 
-// This single line registers all handlers in the assembly.
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateUserCommandHandler).Assembly));
-// This single line registers all validators in the assembly.
 builder.Services.AddValidatorsFromAssembly(typeof(CreateUserCommandHandler).Assembly);
 
 builder.Services.AddTransient<IUsersDbContext, UsersDbContext>();
 builder.Services.AddScoped<IKeycloakService, KeycloakService>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<IEventPublisher, EventPublisher>();
 
 System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
 
@@ -54,33 +57,36 @@ builder.Services.AddDbContext<UsersDbContext>(options =>
     options.UseNpgsql(dbConnectionString));
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Introduce el token JWT en el formato: Bearer {token}"
-    });
 
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<UserCreatedConsumer>();
+    x.AddConsumer<UserUpdatedConsumer>();
+    x.AddConsumer<UserDeletedConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
     {
+        cfg.Host("localhost", "/", h =>
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
-        }
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        cfg.ReceiveEndpoint("user-created-queue", e =>
+        {
+            e.ConfigureConsumer<UserCreatedConsumer>(context);
+        });
+        cfg.ReceiveEndpoint("user-updated-queue", e =>
+        {
+            e.ConfigureConsumer<UserUpdatedConsumer>(context);
+        });
+        cfg.ReceiveEndpoint("user-deleted-queue", e =>
+        {
+            e.ConfigureConsumer<UserDeletedConsumer>(context);
+        });
     });
 });
+
 
 var app = builder.Build();
 

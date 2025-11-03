@@ -1,25 +1,25 @@
 # Utiliza una imagen multi-stage para optimizar el tamaño final
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia los archivos de solución y restaura dependencias
+# Copia los archivos de proyecto (.csproj) y el archivo de solución (.sln)
 COPY UsersMS.sln ./
-COPY UsersMS/UsersMS.csproj UsersMS/
-COPY UsersMS.Application/UsersMS.Application.csproj UsersMS.Application/
-COPY UsersMS.Commons/UsersMS.Commons.csproj UsersMS.Commons/
-COPY UsersMS.Core/UsersMS.Core.csproj UsersMS.Core/
-COPY UsersMS.Domain/UsersMS.Domain.csproj UsersMS.Domain/
-COPY UsersMS.Infrastructure/UsersMS.Infrastructure.csproj UsersMS.Infrastructure/
-COPY UsersMS.Test/UsersMS.Test.csproj UsersMS.Test/
-RUN dotnet restore "UsersMS/UsersMS.csproj"
+COPY */*.csproj ./
+RUN for prj in $(ls -d */); do mkdir -p ${prj%%/}; mv $(basename ${prj%%/}.csproj) ${prj%%/}; done
+
+# Restaura las dependencias para toda la solución
+# Esto aprovecha el cache de Docker. Solo se volverá a ejecutar si los archivos .csproj cambian.
+RUN dotnet restore "UsersMS.sln"
 
 # Copia el resto de los archivos y compila
 COPY . .
-WORKDIR "/src/UsersMS"
-RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
+WORKDIR "/src"
+RUN dotnet publish "UsersMS/UsersMS.csproj" -c Release -o /app/publish --no-restore
 
 # Imagen final
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+# Expone el puerto que la aplicación usará dentro del contenedor
+EXPOSE 8080
 ENTRYPOINT ["dotnet", "UsersMS.dll"]

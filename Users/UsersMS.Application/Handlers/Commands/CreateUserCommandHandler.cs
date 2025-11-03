@@ -18,12 +18,15 @@ namespace UsersMS.Application.Handlers.Commands
         private readonly IKeycloakService _keycloakService;
         private readonly IUsersDbContext _context;
         private readonly IValidator<CreateUserCommand> _validator;
-        public CreateUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService, IUsersDbContext context, IValidator<CreateUserCommand> validator)
+        private readonly IEventPublisher _eventPublisher;
+
+        public CreateUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService, IUsersDbContext context, IValidator<CreateUserCommand> validator, IEventPublisher eventPublisher)
         {
             _userRepository = userRepository;
             _keycloakService = keycloakService;
             _context = context;
             _validator = validator;
+            _eventPublisher = eventPublisher;
         }
 
         public async Task<string> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -46,8 +49,6 @@ namespace UsersMS.Application.Handlers.Commands
                 dto.State
             );
 
-            await _userRepository.AddAsync(user);
-
             var token = await _keycloakService.GetAdminTokenAsync();
 
             var keycloakUser = new
@@ -66,7 +67,7 @@ namespace UsersMS.Application.Handlers.Commands
             await _keycloakService.CreateUserAsync(keycloakUser, token);
             await _keycloakService.AssignRoleAsync(user.Email!, user.Role.ToString(), token);
 
-            await _context.DbContext.SaveChangesAsync(cancellationToken);
+            await _eventPublisher.PublishUserCreatedAsync(user);
 
             return "User successfully created.";
         }

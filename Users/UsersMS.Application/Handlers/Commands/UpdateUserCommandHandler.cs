@@ -15,13 +15,15 @@ namespace UsersMS.Application.Handlers.Commands
         private readonly IKeycloakService _keycloakService;
         private readonly IUsersDbContext _context;
         private readonly IValidator<UpdateUserCommand> _validator;
+        private readonly IEventPublisher _eventPublisher;
 
-        public UpdateUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService, IUsersDbContext context, IValidator<UpdateUserCommand> validator)
+        public UpdateUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService, IUsersDbContext context, IValidator<UpdateUserCommand> validator, IEventPublisher eventPublisher)
         {
             _userRepository = userRepository;
             _keycloakService = keycloakService;
             _context = context;
             _validator = validator;
+            _eventPublisher = eventPublisher;
         }
 
         public async Task<string> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
@@ -55,10 +57,7 @@ namespace UsersMS.Application.Handlers.Commands
             };
 
             await _keycloakService.UpdateUserAsync(user.Email!, updatePayload, token);
-            await _userRepository.UpdateAsync(user);
-
-            await _context.DbContext.SaveChangesAsync(cancellationToken);
-
+            await _eventPublisher.PublishUserUpdatedAsync(user);
             return "User updated successfully.";
         }
     }

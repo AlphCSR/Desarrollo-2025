@@ -15,14 +15,16 @@ namespace UsersMS.Application.Handlers.Commands
         private readonly IKeycloakService _keycloakService;
         private readonly IUsersDbContext _context;
         private readonly IValidator<DeleteUserCommand> _validator;
+        private readonly IEventPublisher _eventPublisher;
 
 
-        public DeleteUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService, IUsersDbContext context, IValidator<DeleteUserCommand> validator  )
+        public DeleteUserCommandHandler(IUserRepository userRepository, IKeycloakService keycloakService, IUsersDbContext context, IValidator<DeleteUserCommand> validator, IEventPublisher eventPublisher)
         {
             _userRepository = userRepository;
             _keycloakService = keycloakService;
             _context = context;
             _validator = validator;
+            _eventPublisher = eventPublisher;
         }
 
         public async Task<string> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
@@ -42,9 +44,7 @@ namespace UsersMS.Application.Handlers.Commands
 
             var token = await _keycloakService.GetAdminTokenAsync();
             await _keycloakService.DisableUserAsync(user.Email, token);
-            await _userRepository.DeleteAsync(userId);
-
-            await _context.DbContext.SaveChangesAsync(cancellationToken);
+            await _eventPublisher.PublishUserDeletedAsync(user);
 
             return "User successfully disabled.";
         }
