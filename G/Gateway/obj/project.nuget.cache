@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "Tho/u0IRuSA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\cesar\\Desktop\\Desarrollo 2025\\G\\Gateway\\Gateway.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\cesar\\.nuget\\packages\\dotswashbuckle.aspnetcore.swagger\\3.0.11\\dotswashbuckle.aspnetcore.swagger.3.0.11.nupkg.sha512",
+    "C:\\Users\\cesar\\.nuget\\packages\\dotswashbuckle.aspnetcore.swaggergen\\3.0.11\\dotswashbuckle.aspnetcore.swaggergen.3.0.11.nupkg.sha512",
+    "C:\\Users\\cesar\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.5\\microsoft.aspnetcore.openapi.9.0.5.nupkg.sha512",
+    "C:\\Users\\cesar\\.nuget\\packages\\microsoft.openapi\\1.6.22\\microsoft.openapi.1.6.22.nupkg.sha512",
+    "C:\\Users\\cesar\\.nuget\\packages\\system.io.hashing\\8.0.0\\system.io.hashing.8.0.0.nupkg.sha512",
+    "C:\\Users\\cesar\\.nuget\\packages\\yarp.reverseproxy\\2.3.0\\yarp.reverseproxy.2.3.0.nupkg.sha512"
+  ],
+  "logs": []
+}
