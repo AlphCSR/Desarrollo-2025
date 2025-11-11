@@ -1,0 +1,17 @@
+
+dotnet new webapi        -n AuctionsMS
+dotnet new classlib      -n AuctionsMS.Application
+dotnet new classlib      -n AuctionsMS.Domain
+dotnet new classlib      -n AuctionsMS.Infrastructure
+dotnet new classlib      -n AuctionsMS.Core
+dotnet new classlib      -n AuctionsMS.Commons
+dotnet new xunit         -n AuctionsMS.Tests
+
+dotnet new sln
+dotnet sln add AuctionsMS/AuctionsMS.csproj
+dotnet sln add AuctionsMS.Application/AuctionsMS.Application.csproj
+dotnet sln add AuctionsMS.Domain/AuctionsMS.Domain.csproj
+dotnet sln add AuctionsMS.Infrastructure/AuctionsMS.Infrastructure.csproj
+dotnet sln add AuctionsMS.Core/AuctionsMS.Core.csproj
+dotnet sln add AuctionsMS.Commons/AuctionsMS.Commons.csproj
+dotnet sln add AuctionsMS.Tests/AuctionsMS.Tests.csproj
