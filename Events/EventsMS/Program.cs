@@ -1,41 +1,90 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using FluentValidation;
+using MassTransit;
+using Hangfire;
+using Hangfire.PostgreSql;
+using Microsoft.AspNetCore.Authentication.JwtBearer; // Para Keycloak
+using EventsMS.Core.DataBase;
+using EventsMS.Core.Repositories;
+using EventsMS.Infrastructure.DataBase;
+using EventsMS.Infrastructure.Repositories;
+using EventsMS.Application.Handlers.Commands;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// --- 1. Configuración de Servicios (igual que UsersMS) ---
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    // (Tu configuración de Swagger con Bearer Token)
+});
+builder.Services.AddHttpClient();
 
+// --- 2. Configuración de la BD (Postgres) ---
+var dbConnectionString = builder.Configuration.GetValue<string>("DefaultConnection");
+builder.Services.AddDbContext<EventsDbContext>(options =>
+    options.UseNpgsql(dbConnectionString));
+
+// Inyectar interfaces de tu plantilla
+builder.Services.AddTransient<IEventsDbContext, EventsDbContext>();
+builder.Services.AddTransient<IEventRepository, EventRepository>();
+
+// --- 3. Configuración de MediatR y Validators ---
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateEventCommandHandler).Assembly));
+builder.Services.AddValidatorsFromAssembly(typeof(CreateEventCommandHandler).Assembly);
+
+// --- 4. Configuración de Autenticación (Keycloak) ---
+// Configurar autenticación JWT con Keycloak si el Gateway lo requiere aun no se
+
+// --- 5. Configuración de MassTransit (RabbitMQ + Outbox) ---
+builder.Services.AddMassTransit(busConfig =>
+{
+    busConfig.AddEntityFrameworkOutbox<EventsDbContext>(outboxConfig =>
+    {
+        outboxConfig.QueryDelay = TimeSpan.FromSeconds(10);
+        outboxConfig.UseBusOutbox(c => c.ConcurrentMessageDelivery = true); 
+    });
+
+    busConfig.SetKebabCaseEndpointNameFormatter();
+
+    busConfig.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration["RabbitMQ:Host"], "/", h =>
+        {
+            h.Username(builder.Configuration["RabbitMQ:Username"]);
+            h.Password(builder.Configuration["RabbitMQ:Password"]);
+        });
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
+// --- 6. Configuración de Hangfire ---
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(dbConnectionString)));
+
+builder.Services.AddHangfireServer();
+
+// --- Construir la App ---
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// --- Middlewares de Seguridad y Jobs ---
+// app.UseAuthentication(); // <-- Activar autenticación
+// app.UseAuthorization();  // <-- Activar autorización
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.UseHangfireDashboard("/hangfire"); // Dashboard de Hangfire
 
+app.MapControllers();
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
