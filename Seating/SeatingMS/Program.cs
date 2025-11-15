@@ -59,9 +59,11 @@ builder.Services.AddHangfire(config => config
     .UseRecommendedSerializerSettings()
     .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(dbConnectionString)));
 
+
 builder.Services.AddHangfireServer();
 // --- REGISTRAR JOB ---
 builder.Services.AddTransient<ISeatExpirationJob, SeatExpirationJob>();
+
 
 var app = builder.Build();
 

@@ -1,17 +1,17 @@
 
-dotnet new webapi        -n SeatingMS
-dotnet new classlib      -n SeatingMS.Application
-dotnet new classlib      -n SeatingMS.Domain
-dotnet new classlib      -n SeatingMS.Infrastructure
-dotnet new classlib      -n SeatingMS.Core
-dotnet new classlib      -n SeatingMS.Commons
-dotnet new xunit         -n SeatingMS.Tests
+dotnet new webapi        -n BookingMS
+dotnet new classlib      -n BookingMS.Application
+dotnet new classlib      -n BookingMS.Domain
+dotnet new classlib      -n BookingMS.Infrastructure
+dotnet new classlib      -n BookingMS.Core
+dotnet new classlib      -n BookingMS.Commons
+dotnet new xunit         -n BookingMS.Tests
 
 dotnet new sln
-dotnet sln add SeatingMS/SeatingMS.csproj
-dotnet sln add SeatingMS.Application/SeatingMS.Application.csproj
-dotnet sln add SeatingMS.Domain/SeatingMS.Domain.csproj
-dotnet sln add SeatingMS.Infrastructure/SeatingMS.Infrastructure.csproj
-dotnet sln add SeatingMS.Core/SeatingMS.Core.csproj
-dotnet sln add SeatingMS.Commons/SeatingMS.Commons.csproj
-dotnet sln add SeatingMS.Tests/SeatingMS.Tests.csproj
+dotnet sln add BookingMS/BookingMS.csproj
+dotnet sln add BookingMS.Application/BookingMS.Application.csproj
+dotnet sln add BookingMS.Domain/BookingMS.Domain.csproj
+dotnet sln add BookingMS.Infrastructure/BookingMS.Infrastructure.csproj
+dotnet sln add BookingMS.Core/BookingMS.Core.csproj
+dotnet sln add BookingMS.Commons/BookingMS.Commons.csproj
+dotnet sln add BookingMS.Tests/BookingMS.Tests.csproj
