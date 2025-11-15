@@ -1,17 +1,17 @@
 
-dotnet new webapi        -n AuctionsMS
-dotnet new classlib      -n AuctionsMS.Application
-dotnet new classlib      -n AuctionsMS.Domain
-dotnet new classlib      -n AuctionsMS.Infrastructure
-dotnet new classlib      -n AuctionsMS.Core
-dotnet new classlib      -n AuctionsMS.Commons
-dotnet new xunit         -n AuctionsMS.Tests
+dotnet new webapi        -n SeatingMS
+dotnet new classlib      -n SeatingMS.Application
+dotnet new classlib      -n SeatingMS.Domain
+dotnet new classlib      -n SeatingMS.Infrastructure
+dotnet new classlib      -n SeatingMS.Core
+dotnet new classlib      -n SeatingMS.Commons
+dotnet new xunit         -n SeatingMS.Tests
 
 dotnet new sln
-dotnet sln add AuctionsMS/AuctionsMS.csproj
-dotnet sln add AuctionsMS.Application/AuctionsMS.Application.csproj
-dotnet sln add AuctionsMS.Domain/AuctionsMS.Domain.csproj
-dotnet sln add AuctionsMS.Infrastructure/AuctionsMS.Infrastructure.csproj
-dotnet sln add AuctionsMS.Core/AuctionsMS.Core.csproj
-dotnet sln add AuctionsMS.Commons/AuctionsMS.Commons.csproj
-dotnet sln add AuctionsMS.Tests/AuctionsMS.Tests.csproj
+dotnet sln add SeatingMS/SeatingMS.csproj
+dotnet sln add SeatingMS.Application/SeatingMS.Application.csproj
+dotnet sln add SeatingMS.Domain/SeatingMS.Domain.csproj
+dotnet sln add SeatingMS.Infrastructure/SeatingMS.Infrastructure.csproj
+dotnet sln add SeatingMS.Core/SeatingMS.Core.csproj
+dotnet sln add SeatingMS.Commons/SeatingMS.Commons.csproj
+dotnet sln add SeatingMS.Tests/SeatingMS.Tests.csproj

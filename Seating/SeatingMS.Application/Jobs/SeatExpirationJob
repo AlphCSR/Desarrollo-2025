@@ -1,0 +1,58 @@
+using Hangfire;
+using MassTransit;
+using SeatingMS.Core.Repositories;
+using SeatingMS.Core.DataBase;
+using SeatingMS.Commons.Enums;
+using SeatingMS.Commons.IntegrationEvents;
+
+namespace SeatingMS.Application.Jobs
+{
+    public class SeatExpirationJob : ISeatExpirationJob
+    {
+        private readonly IEventSeatRepository _seatRepository;
+        private readonly ISeatingDbContext _context;
+        private readonly IPublishEndpoint _publishEndpoint;
+
+        public SeatExpirationJob(IEventSeatRepository seatRepository, ISeatingDbContext context, IPublishEndpoint publishEndpoint)
+        {
+            _seatRepository = seatRepository;
+            _context = context;
+            _publishEndpoint = publishEndpoint;
+        }
+
+        [AutomaticRetry(Attempts = 3)] // Reintentar si falla
+        public async Task CheckSeatLock(Guid eventSeatId)
+        {
+            var seat = await _seatRepository.GetByIdAsync(eventSeatId);
+
+            // Si el asiento sigue bloqueado y el tiempo ha expirado
+            if (seat != null && seat.Status == SeatStatus.Locked && seat.LockExpiresAt <= DateTime.UtcNow)
+            {
+                seat.Status = SeatStatus.Available; // Liberar
+                seat.LockedByUserId = null;
+                seat.LockExpiresAt = null;
+
+                await using var transaction = _context.BeginTransaction();
+                try
+                {
+                    await _seatRepository.UpdateAsync(seat);
+
+                    // Publicar evento para que BookingMS cancele la reserva
+                    await _publishEndpoint.Publish(new SeatReleasedIntegrationEvent
+                    {
+                        EventSeatId = seat.Id,
+                        Reason = "Expired"
+                    });
+                    
+                    await _context.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    throw; 
+                }
+            }
+        }
+    }
+}
